@@ -5,7 +5,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.chart.PieChart;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -14,13 +17,13 @@ import javafx.stage.Stage;
 import java.sql.*;
 
 public class ProductApplication extends Application {
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/product_application";
-    private static final String DB_USERNAME = "Baron";
-    private static final String DB_PASSWORD = "alekobatla23";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/[TABLE_NAME]";
+    private static final String DB_USERNAME = "[USERNAME]";
+    private static final String DB_PASSWORD = "[PASSWORD]";
 
     private ObservableList<Product> products = FXCollections.observableArrayList();
     private BorderPane root;
-    private PieChart pieChart;
+    private BarChart<String, Number> barChart;
 
     public static void main(String[] args) {
         launch(args);
@@ -71,21 +74,23 @@ public class ProductApplication extends Application {
             priceField.clear();
 
             retrieveProducts();
-            updatePieChart();
+            updateBarChart();
         });
 
         root.setLeft(inputGrid);
 
-        pieChart = new PieChart();
-        pieChart.setTitle("Product Quantity");
-        root.setCenter(pieChart);
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        barChart = new BarChart<>(xAxis, yAxis);
+        barChart.setTitle("Product Quantity");
+        root.setCenter(barChart);
 
         Scene scene = new Scene(root, 600, 400);
         primaryStage.setScene(scene);
         primaryStage.show();
 
         retrieveProducts();
-        updatePieChart();
+        updateBarChart();
     }
 
     private void saveProduct(Product product) {
@@ -121,7 +126,6 @@ public class ProductApplication extends Application {
         }
     }
 
-
     private void retrieveProducts() {
         products.clear();
 
@@ -143,19 +147,14 @@ public class ProductApplication extends Application {
         }
     }
 
-    private void updatePieChart() {
-        pieChart.getData().clear();
+    private void updateBarChart() {
+        barChart.getData().clear();
 
-        int totalCount = 0;
-
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
         for (Product product : products) {
-            int quantity = product.getQuantity();
-            totalCount += quantity;
-
-            PieChart.Data data = new PieChart.Data(product.getName() + " (" + quantity + ")", quantity);
-            pieChart.getData().add(data);
+            series.getData().add(new XYChart.Data<>(product.getName(), product.getQuantity()));
         }
 
-        pieChart.setTitle("Product Quantity (Total: " + totalCount + ")");
+        barChart.getData().add(series);
     }
 }
