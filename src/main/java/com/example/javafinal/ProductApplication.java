@@ -1,25 +1,23 @@
 package com.example.javafinal;
 
+import java.util.Map;
+import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
+import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
-
 import java.sql.*;
 
 public class ProductApplication extends Application {
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/[TABLE_NAME]";
-    private static final String DB_USERNAME = "[USERNAME]";
-    private static final String DB_PASSWORD = "[PASSWORD]";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/[DATABASE NAME]";
+    private static final String DB_USERNAME = "root";
+    private static final String DB_PASSWORD = "";
 
     private ObservableList<Product> products = FXCollections.observableArrayList();
     private BorderPane root;
@@ -150,11 +148,17 @@ public class ProductApplication extends Application {
     private void updateBarChart() {
         barChart.getData().clear();
 
+        Map<String, Integer> productQuantities = products.stream()
+                .collect(Collectors.groupingBy(Product::getName, Collectors.summingInt(Product::getQuantity)));
+
+        int totalCount = productQuantities.values().stream().mapToInt(Integer::intValue).sum();
+
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        for (Product product : products) {
-            series.getData().add(new XYChart.Data<>(product.getName(), product.getQuantity()));
-        }
+        series.setName("Product Quantity");
+
+        productQuantities.forEach((name, quantity) -> series.getData().add(new XYChart.Data<>(name, quantity)));
 
         barChart.getData().add(series);
+        barChart.setTitle("Product Quantity (Total: " + totalCount + ")");
     }
 }
